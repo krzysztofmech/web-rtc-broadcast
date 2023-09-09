@@ -1,40 +1,46 @@
-import { ServerResponse } from "http";
-import http from "http";
-import { Server } from "socket.io";
-const port = 3000;
-const app = http.createServer((_, response: ServerResponse) => {
-  response.statusCode = 200;
-  response.setHeader("Content-Type", "text/plain");
-  response.end("Hello World");
-});
+import Fastify from "fastify";
+import fastifyIO from "fastify-socket.io";
 
-const io = new Server(app, {
+const port = 3000;
+const server = Fastify({ logger: true });
+server.register(fastifyIO, {
   cors: {
     origin: "*",
   },
 });
+server.get("/", (_, reply) => {
+  reply.send({ hello: "world" });
+});
 
-io.use((socket, next) => {
-  const username = socket.handshake.auth.username;
-  if (!username) {
-    return next(new Error("invalid username"));
+server.ready().then(() => {
+  server.io.use((socket, next) => {
+    const username = socket.handshake.auth.username;
+    if (!username) {
+      return next(new Error("invalid username"));
+    }
+    socket.data.username = username;
+    next();
+  });
+  server.io.on("connection", (socket) => {
+    socket.join("chat");
+
+    socket.on("message", (message) => {
+      server.io
+        .to("chat")
+        .emit("message", { message, username: socket.data.username });
+      // console.log("data", data);
+    });
+
+    socket.on("disconnect", (id) => {
+      console.log(`Client ${id} disconnected`);
+    });
+
+    console.log("connected", socket.data.username);
+  });
+});
+
+server.listen({ port }, (err) => {
+  if (err) {
+    server.log.error(err);
   }
-  socket.data.username = username;
-  next();
 });
-
-io.on("connection", async (socket) => {
-  socket.join("chat");
-
-  socket.to("chat").emit("joined", socket.data.username);
-
-  socket.on("message", (data) => {
-    socket.to("chat").emit("message", data);
-  });
-
-  socket.on("disconnect", (id) => {
-    console.log(`Client ${id} disconnected`);
-  });
-});
-
-io.listen(port);

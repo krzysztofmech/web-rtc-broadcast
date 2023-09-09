@@ -1,5 +1,6 @@
 import React, { ChangeEvent, useState } from "react";
 import { useSocketContext } from "./useSocketContext";
+import { Message } from "./types";
 
 interface HomeProps {}
 
@@ -32,6 +33,7 @@ export const Home: React.FC<HomeProps> = ({}) => {
           <button
             onClick={() => {
               sendMessage(message);
+              setMessage("");
             }}
           >
             Send message
@@ -48,8 +50,19 @@ export const Home: React.FC<HomeProps> = ({}) => {
           <br />
 
           <div>
-            {messages.map((user: any, index: number) => (
-              <p key={index}>{user}</p>
+            {messages.map(({ message, username }, index: number) => (
+              <div
+                key={index}
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "flex-start",
+                  borderBottom: "1px solid gray",
+                }}
+              >
+                <div style={{ color: "gray" }}>{username}</div>
+                <div>{message}</div>
+              </div>
             ))}
           </div>
         </div>

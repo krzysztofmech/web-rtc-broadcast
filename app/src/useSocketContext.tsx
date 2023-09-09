@@ -1,10 +1,11 @@
 import { useContext, useEffect, useState } from "react";
 import { SocketContext } from "./SocketProvider";
+import { Message } from "./types";
 
 export const useSocketContext = () => {
   const { socket } = useContext(SocketContext);
   const [isConnected, setIsConnected] = useState<boolean>(false);
-  const [messages, setMessages] = useState<any>([]);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [users, setUsers] = useState<string[]>([]);
   useEffect(() => {
     socket && isConnected && addEventListeners();
@@ -13,6 +14,7 @@ export const useSocketContext = () => {
   const connect = (username: string) => {
     socket.auth = { username };
     socket.connect();
+
     setIsConnected(true);
   };
 
@@ -25,12 +27,8 @@ export const useSocketContext = () => {
     socket.emit("message", message);
   };
   const addEventListeners = () => {
-    socket.on("message", (message) => {
-      setMessages([...messages, message]);
-    });
-
-    socket.on("user-connected", (username: string) => {
-      setUsers([...users, username]);
+    socket.on("message", ({ message, username }: Message) => {
+      setMessages((messages) => [...messages, { message, username }]);
     });
   };
 
