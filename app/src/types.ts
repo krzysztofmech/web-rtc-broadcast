@@ -1,4 +1,12 @@
-export type Message = {
-  username: string;
-  message: string;
+export type Message = RTCSessionDescriptionInit;
+export type IceCandidate = {
+  candidate: RTCIceCandidate;
+};
+export type Peers = {
+  [peerId: string]: Peer;
+};
+
+export type Peer = {
+  socketId: string;
+  peerId: string;
 };
