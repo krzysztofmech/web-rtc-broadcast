@@ -1,46 +1,48 @@
-import Fastify from "fastify";
-import fastifyIO from "fastify-socket.io";
+import { Socket, Server } from "socket.io";
+import { Peers } from "./types";
 
 const port = 3000;
-const server = Fastify({ logger: true });
-server.register(fastifyIO, {
+
+const io = new Server({
   cors: {
-    origin: "*",
+    origin: "http://localhost:5173",
   },
 });
-server.get("/", (_, reply) => {
-  reply.send({ hello: "world" });
-});
 
-server.ready().then(() => {
-  server.io.use((socket, next) => {
-    const username = socket.handshake.auth.username;
-    if (!username) {
-      return next(new Error("invalid username"));
-    }
-    socket.data.username = username;
-    next();
-  });
-  server.io.on("connection", (socket) => {
-    socket.join("chat");
+const peers: Peers = {};
 
-    socket.on("message", (message) => {
-      server.io
-        .to("chat")
-        .emit("message", { message, username: socket.data.username });
-      // console.log("data", data);
-    });
-
-    socket.on("disconnect", (id) => {
-      console.log(`Client ${id} disconnected`);
-    });
-
-    console.log("connected", socket.data.username);
-  });
-});
-
-server.listen({ port }, (err) => {
-  if (err) {
-    server.log.error(err);
+io.use((socket, next) => {
+  const peerId = socket.handshake.auth.peerId;
+  if (!peerId || peers[peerId]) {
+    return next(new Error("invalid peerId"));
   }
+
+  updatePeers(peerId, socket);
+
+  socket.data.peerId = peerId;
+  next();
 });
+
+const updatePeers = (peerId: string, socket: Socket) => {
+  peers[peerId] = { peerId, socketId: socket.id };
+};
+
+io.on("connection", (socket) => {
+  socket.emit("ready");
+
+  socket.emit("joined", peers);
+
+  socket.on("message", (message: any) => {
+    socket.broadcast.emit("message", message);
+  });
+
+  socket.on("icecandidate", (candidate) => {
+    socket.emit("icecandidate", candidate);
+  });
+
+  socket.on("disconnect", () => {
+    peers[socket.id] && delete peers[socket.id];
+  });
+});
+
+io.listen(port);
