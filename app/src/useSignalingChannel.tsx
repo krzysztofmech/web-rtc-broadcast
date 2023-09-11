@@ -1,6 +1,6 @@
 import { useContext, useEffect, useState } from "react";
 import { SocketContext } from "./SocketProvider";
-import { Peers } from "./types";
+import { IceCandidate, Message, Peers } from "./types";
 
 export const useSignalingChannel = () => {
   const { socket } = useContext(SocketContext);
@@ -52,7 +52,7 @@ export const useSignalingChannel = () => {
         await peerConnection.setLocalDescription(offer);
         socket.emit("message", offer);
       }
-      socket.on("message", async (message: any) => {
+      socket.on("message", async (message: Message) => {
         if (message.type === "offer") {
           const peerConnection = createPeerConnection();
 
@@ -69,8 +69,8 @@ export const useSignalingChannel = () => {
         }
       });
 
-      socket.on("icecandidate", async (message: any) => {
-        await peerConnection.addIceCandidate(message.candidate);
+      socket.on("icecandidate", async (iceCandidate: IceCandidate) => {
+        await peerConnection.addIceCandidate(iceCandidate.candidate);
       });
 
       peerConnection.addEventListener("icecandidate", ({ candidate }) => {

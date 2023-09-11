@@ -1,6 +1,5 @@
 import { Socket, Server } from "socket.io";
-import { Peers } from "./types";
-
+import { IceCandidate, Message, Peers } from "./types";
 const port = 3000;
 
 const io = new Server({
@@ -32,12 +31,12 @@ io.on("connection", (socket) => {
 
   socket.emit("joined", peers);
 
-  socket.on("message", (message: any) => {
+  socket.on("message", (message: Message) => {
     socket.broadcast.emit("message", message);
   });
 
-  socket.on("icecandidate", (candidate) => {
-    socket.emit("icecandidate", candidate);
+  socket.on("icecandidate", (iceCandidate: IceCandidate) => {
+    socket.emit("icecandidate", iceCandidate);
   });
 
   socket.on("disconnect", () => {
