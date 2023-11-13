@@ -1,18 +1,38 @@
 import {
-  IceParameters,
-  IceCandidate,
-  DtlsParameters,
-  SctpParameters,
-  RtpCapabilities,
-  MediaKind,
-  RtpParameters,
   AppData,
-} from "mediasoup-client/lib/types";
+  DtlsParameters,
+  IceParameters,
+  MediaKind,
+  RtpCapabilities,
+  RtpParameters,
+  SctpParameters,
+  WebRtcTransport,
+  IceCandidate,
+  Producer,
+  Consumer,
+} from "mediasoup/node/lib/types";
 
-export type CreateWebRtcTransportPayload = {
-  webRtcProducingTransport: UserTransport;
-  webRtcConsumingTransport: UserTransport;
+export type Message = {
+  type: string;
+  sdp: string;
 };
+
+export type Connections = {
+  [connectionId: string]: Connection;
+};
+
+type Connection = {
+  connectionId: string;
+};
+
+export type User = {
+  id: string;
+  transports: UserTransport[];
+  producer?: Producer;
+  consumer?: Consumer;
+  username?: string;
+};
+
 export type UserTransport = {
   type: "producing" | "consuming";
   transportOptions: {
@@ -22,6 +42,7 @@ export type UserTransport = {
     dtlsParameters: DtlsParameters;
     sctpParameters: SctpParameters | undefined;
   };
+  transport: WebRtcTransport;
   rtpCapabilities: RtpCapabilities;
 };
 
@@ -37,13 +58,12 @@ export type TransportProduceInfo = {
   rtpParameters: RtpParameters;
   appData: AppData;
   type: "producing" | "consuming";
+  room: string;
+  username: string;
 };
 
-export type Peers = {
-  [connectionId: string]: Peer;
-};
-
-export type Peer = {
-  socketId: string;
-  connectionId: string;
+export type Room = {
+  name: string;
+  owner: string;
+  producerId: string;
 };

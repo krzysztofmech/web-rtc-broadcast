@@ -1,0 +1,17 @@
+export enum WSEvents {
+  transportOptions = "transportOptions",
+  rtpCapabilities = "rtpCapabilities",
+  newPeer = "newPeer",
+  icecandidate = "icecandidate",
+  message = "message",
+  joined = "joined",
+  ready = "ready",
+  disconnect = "disconnect",
+  transportConnect = "transportConnect",
+  transportProduce = "transportProduce",
+  consume = "consume",
+  createProducingTransport = "createProducingTransport",
+  createConsumingTransport = "createConsumingTransport",
+  createWebRtcTransport = "createWebRtcTransport",
+  createConsumer = "createConsumer",
+}
