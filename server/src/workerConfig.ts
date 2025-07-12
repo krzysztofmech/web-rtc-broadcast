@@ -1,8 +1,9 @@
 import { WorkerSettings } from "mediasoup/node/lib/types";
 
-export const workerSettings: WorkerSettings = {
-  logLevel: "debug",
-  logTags: ["info", "ice", "dtls", "rtp", "srtp", "rtcp"],
+export const workerConfig: WorkerSettings = {
+  logLevel: "none",
+  // logTags: ["info", "ice", "dtls", "rtp", "srtp", "rtcp"],
+  logTags: [],
   rtcMinPort: 40000,
   rtcMaxPort: 49999,
 };

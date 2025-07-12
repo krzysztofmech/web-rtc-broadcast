@@ -1,13 +1,8 @@
-import "./App.css";
+import "./index.css";
 import { Home } from "./Home";
-import { SocketProvider } from "./SocketProvider";
 
 function App() {
-  return (
-    <SocketProvider>
-      <Home />
-    </SocketProvider>
-  );
+  return <Home />;
 }
 
 export default App;
