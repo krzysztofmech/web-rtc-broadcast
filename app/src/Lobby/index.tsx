@@ -4,8 +4,7 @@ import { FaUser } from "react-icons/fa";
 import { useRooms } from "./useRooms";
 import { Room } from "./Room";
 
-interface LobbyProps {
-}
+interface LobbyProps {}
 
 export const Lobby: FC<LobbyProps> = () => {
   const { room, error, isLoading, joinRoom, joinedRoom, consumerOptions } =
@@ -22,11 +21,7 @@ export const Lobby: FC<LobbyProps> = () => {
   return (
     <>
       {!joinedRoom && room && (
-        <Button
-          variant={"outline"}
-          className="py-4"
-          onClick={() => joinRoom()}
-        >
+        <Button variant={"outline"} className="py-4" onClick={() => joinRoom()}>
           <div className="flex flex-col p-4">
             <span>{room.name}</span>
             <div className="flex items-center gap-2">

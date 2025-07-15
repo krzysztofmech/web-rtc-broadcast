@@ -52,7 +52,7 @@ export class Rooms {
   ) {
     const consumer = await this.sfu.createConsumer(rtpCapabilities, socket.id);
 
-    this.updateRoom(socket.id);
+    this.updateRoom(socket.data.username);
     this.signaling.io.emit(WSEvents.roomUpdated, this.room);
     socket.emit(WSEvents.joinedRoom, {
       id: consumer.id,
@@ -62,7 +62,7 @@ export class Rooms {
     } as ConsumerOptions);
   }
 
-  private updateRoom(socketId: string) {
-    this.room.participants.push(socketId);
+  private updateRoom(username: string) {
+    this.room.participants.push(username);
   }
 }

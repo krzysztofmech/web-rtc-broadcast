@@ -22,7 +22,6 @@ type SocketContextValue = {
 const SocketContext = createContext<SocketContextValue | null>(null);
 
 export const Socket: React.FC<SocketProps> = ({ children }) => {
-  console.log('Initializing Socket Context');
   const socket = useRef<TSocket | null>(null);
   const [isConnected, setIsConnected] = useState(false);
 

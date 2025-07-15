@@ -4,9 +4,11 @@ export const routerConfig: RouterOptions = {
     {
       kind: "audio",
       mimeType: "audio/opus",
-      preferredPayloadType: 111,
+      preferredPayloadType: 101,
       clockRate: 48000,
       channels: 2,
+      rtcpFeedback: [],
+      parameters: { "sprop-stereo": 1 },
     },
   ],
 };

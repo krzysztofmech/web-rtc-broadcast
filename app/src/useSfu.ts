@@ -10,14 +10,11 @@ import {
   ConsumerOptions,
 } from "mediasoup-client/lib/types";
 import { WSEvents } from "../../server/src/constants";
-import {
-  CreateTransportsPayload,
-  TransportType,
-} from "../../server/src/types";
+import { CreateTransportsPayload } from "../../server/src/types";
 
 export const useSfu = () => {
   const { socket, isConnected, setIsConnected } = useSocketContext();
-  const { deviceRef, user, setUser, clientConsumingTransportRef } =
+  const { deviceRef, clientConsumingTransportRef } =
     useWebRTCContext();
 
   useEffect(() => {
@@ -35,7 +32,7 @@ export const useSfu = () => {
       });
 
       deviceRef.current = newDevice;
-      socket.emit(WSEvents.createTransports);
+      socket.emit(WSEvents.createTransport);
     } catch (error) {
       console.warn("couldn't initialize device");
     }
@@ -46,7 +43,7 @@ export const useSfu = () => {
       socket.auth = { username };
       socket.connect();
     } catch (error) {
-      console.log("couldn't connect");
+      console.error("couldn't connect");
     }
   };
 
@@ -62,15 +59,9 @@ export const useSfu = () => {
     });
 
     socket.on(
-      WSEvents.createTransports,
-      async ({
-        producingTransportOptions,
-        consumingTransportOptions,
-      }: CreateTransportsPayload) => {
-        await handleCreateTransports(
-          producingTransportOptions,
-          consumingTransportOptions,
-        );
+      WSEvents.createTransport,
+      async ({ consumingTransportOptions }: CreateTransportsPayload) => {
+        await handleCreateTransports(consumingTransportOptions);
       },
     );
 
@@ -81,29 +72,16 @@ export const useSfu = () => {
   };
 
   const handleCreateTransports = async (
-    producingTransportOptions: TransportOptions,
     consumingTransportOptions: TransportOptions,
   ) => {
     try {
-      const clientProducingTransport = await createTransport(
-        producingTransportOptions,
-        "producing",
-      );
-
       const clientConsumingTransport = await createTransport(
         consumingTransportOptions,
-        "consuming",
       );
 
-      if (clientConsumingTransport && clientProducingTransport) {
-        console.log(
-          "created local transports: ",
-          clientProducingTransport,
-          clientConsumingTransport,
-        );
-        await subscribe(clientProducingTransport, clientConsumingTransport);
+      if (clientConsumingTransport) {
+        await subscribe(clientConsumingTransport);
 
-        // setClientProducingTransport(clientProducingTransport);
         clientConsumingTransportRef.current = clientConsumingTransport;
       }
     } catch (error) {
@@ -113,17 +91,13 @@ export const useSfu = () => {
 
   const createTransport = async (
     transportOptions: TransportOptions,
-    type: TransportType,
   ): Promise<Transport | undefined> => {
     try {
       if (!deviceRef.current) {
         throw new Error("Device is not initialized");
       }
 
-      const transport =
-        type === "producing"
-          ? deviceRef.current.createSendTransport(transportOptions)
-          : deviceRef.current.createRecvTransport(transportOptions);
+      const transport = deviceRef.current.createRecvTransport(transportOptions);
 
       return transport;
     } catch (error) {
@@ -131,59 +105,7 @@ export const useSfu = () => {
     }
   };
 
-  const subscribe = async (
-    clientProducingTransport: Transport,
-    clientConsumingTransport: Transport,
-  ) => {
-    clientProducingTransport.on("connect", ({ dtlsParameters }, callback) => {
-      try {
-        console.log(
-          "producing transport connect",
-          dtlsParameters,
-          clientProducingTransport.id,
-        );
-        socket.emit(WSEvents.transportConnect, {
-          transportId: clientProducingTransport.id,
-          dtlsParameters,
-          type: "producing",
-        });
-
-        callback();
-      } catch (error) {
-        console.log("failed to connect");
-      }
-    });
-
-    clientProducingTransport.on(
-      "produce",
-      async ({ appData, kind, rtpParameters }, callback) => {
-        try {
-          console.log(
-            "producing transport produce",
-            appData,
-            kind,
-            rtpParameters,
-          );
-
-          socket.on(WSEvents.transportProduce, (producerId) => {
-            callback({ id: producerId });
-          });
-
-          const transportProduceInfo = {
-            transportId: clientProducingTransport.id,
-            kind,
-            rtpParameters,
-            appData,
-            type: "producing",
-          };
-
-          socket.emit(WSEvents.transportProduce, transportProduceInfo);
-        } catch (error) {
-          console.log("failed to produce");
-        }
-      },
-    );
-
+  const subscribe = async (clientConsumingTransport: Transport) => {
     clientConsumingTransport.on("connect", ({ dtlsParameters }, callback) => {
       try {
         socket.emit(WSEvents.transportConnect, {
@@ -191,7 +113,6 @@ export const useSfu = () => {
           dtlsParameters,
           type: "consuming",
         });
-        console.log('successfully connected consuming transport');
         callback();
       } catch (error) {
         console.log("failed to connect");
@@ -218,7 +139,6 @@ export const useSfu = () => {
 
   return {
     device: deviceRef.current,
-    user,
     socket,
     isConnected,
     connect,

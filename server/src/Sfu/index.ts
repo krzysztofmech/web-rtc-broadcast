@@ -7,7 +7,6 @@ import { routerConfig } from "../routerConfig";
 import { Socket } from "socket.io";
 import { WSEvents } from "../constants";
 import {
-  TransportType,
   User,
   Users,
   UserTransport,
@@ -18,6 +17,7 @@ import { WebRtcTransport } from "mediasoup/node/lib/WebRtcTransportTypes";
 import { webRTCTransportConfig } from "../webRTCTransportConfig";
 import { RtpCapabilities } from "mediasoup-client/lib/RtpParameters";
 import { Producer } from "mediasoup/node/lib/ProducerTypes";
+import { FFmpeg } from "../broadcasters/FFmpeg";
 
 export class Sfu {
   constructor(httpServer: Server) {
@@ -44,14 +44,12 @@ export class Sfu {
   public addListeners(socket: Socket) {
     socket.emit(WSEvents.loadDevice, this.router.rtpCapabilities);
 
-    socket.on(WSEvents.createTransports, async () => {
-      const producingTransport = await this.createTransport("producing");
-      const consumingTransport = await this.createTransport("consuming");
+    socket.on(WSEvents.createTransport, async () => {
+      const consumingTransport = await this.createConsumingTransport();
 
-      this.createUser(socket, producingTransport, consumingTransport);
+      this.createUser(socket, consumingTransport);
 
-      socket.emit(WSEvents.createTransports, {
-        producingTransportOptions: producingTransport.transportOptions,
+      socket.emit(WSEvents.createTransport, {
         consumingTransportOptions: consumingTransport.transportOptions,
       } as CreateTransportsPayload);
     });
@@ -63,11 +61,8 @@ export class Sfu {
 
       const user = this.users.get(socket.id);
       if (user) {
-        user.transports.consumingTransport.transport.connect({
-          dtlsParameters: {
-            role: "server",
-            fingerprints: dtlsParameters.fingerprints,
-          },
+        user.consumingTransport.transport.connect({
+          dtlsParameters,
         });
       }
     });
@@ -111,8 +106,8 @@ export class Sfu {
       comedia: true,
     });
 
-    transport.tuple.localPort;
-    transport.rtcpTuple?.localPort;
+    const rtpPort = transport.tuple.localPort;
+    const rtcpPort = transport.rtcpTuple?.localPort;
 
     const producer = await transport.produce({
       kind: "audio",
@@ -131,6 +126,11 @@ export class Sfu {
       },
     });
 
+    new FFmpeg({
+      rtpPort,
+      rtcpPort,
+    });
+
     this.producer = producer as any;
   }
 
@@ -144,7 +144,7 @@ export class Sfu {
 
     const canConsume = this.router.canConsume({
       producerId: this.producer.id,
-      rtpCapabilities: rtpCapabilities,
+      rtpCapabilities,
     });
 
     if (!canConsume) {
@@ -157,18 +157,16 @@ export class Sfu {
 
     const user = this.users.get(socketId)!;
 
-    const consumer = await user.transports.consumingTransport.transport.consume(
-      {
-        producerId: this.producer.id,
-        rtpCapabilities: rtpCapabilities,
-        paused: true,
-      },
-    );
+    const consumer = await user.consumingTransport.transport.consume({
+      producerId: this.producer.id,
+      rtpCapabilities,
+      paused: true,
+    });
     this.consumers.set(socketId, consumer);
     return consumer;
   }
 
-  private async createTransport(type: TransportType) {
+  private async createConsumingTransport() {
     const transport: WebRtcTransport = await this.router.createWebRtcTransport({
       listenIps: webRTCTransportConfig.listenInfos,
     });
@@ -182,7 +180,6 @@ export class Sfu {
     };
 
     const userTransport: UserTransport = {
-      type,
       transport,
       transportOptions,
       rtpCapabilities: this.router.rtpCapabilities,
@@ -191,28 +188,25 @@ export class Sfu {
     return userTransport;
   }
 
-  private createUser(
-    socket: Socket,
-    producingTransport: UserTransport,
-    consumingTransport: UserTransport,
-  ) {
+  private createUser(socket: Socket, consumingTransport: UserTransport) {
     const user: User = {
       socketId: socket.id,
       username: socket.data.username,
-      transports: {
-        producingTransport,
-        consumingTransport,
-      },
+      consumingTransport,
     };
 
     this.users.set(socket.id, user);
   }
 
   private async consume(socketId: string) {
+    if (this.producer.paused) {
+      await this.producer.resume();
+    }
+
     const consumer = this.consumers.get(socketId);
 
     if (consumer) {
-      consumer.resume();
+      await consumer.resume();
     }
   }
 }

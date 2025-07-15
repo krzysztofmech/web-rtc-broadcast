@@ -42,7 +42,10 @@ export const Room: FC<RoomProps> = ({ roomInfo, consumerOptions }) => {
         <audio ref={audioRef} autoPlay />
         <div className="flex gap-2">
           {roomInfo.participants.map((participant) => (
-            <FaUser key={participant} />
+            <div key={participant} className="flex flex-col items-center gap-2">
+              <FaUser />
+              {participant}
+            </div>
           ))}
         </div>
       </div>

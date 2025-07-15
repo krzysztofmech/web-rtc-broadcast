@@ -31,27 +31,20 @@ export type Consumers = Map<string, Consumer>;
 export type User = {
   socketId: string;
   username: string;
-  transports: {
-    producingTransport: UserTransport;
-    consumingTransport: UserTransport;
-  };
+  consumingTransport: UserTransport;
   producer?: Producer;
   consumer?: Consumer;
 };
 
 export type UserTransport = {
-  type: TransportType;
   transportOptions: TransportOptions;
   transport: WebRtcTransport;
   rtpCapabilities: RtpCapabilities;
 };
 
-export type TransportType = "producing" | "consuming";
-
 export type TransportConnectInfo = {
   transportId: string;
   dtlsParameters: DtlsParameters;
-  type: TransportType;
 };
 
 export type TransportProduceInfo = {
@@ -59,11 +52,9 @@ export type TransportProduceInfo = {
   kind: MediaKind;
   rtpParameters: RtpParameters;
   appData: AppData;
-  type: TransportType;
 };
 
 export type CreateTransportsPayload = {
-  producingTransportOptions: TransportOptions;
   consumingTransportOptions: TransportOptions;
 };
 
