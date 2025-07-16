@@ -33,7 +33,7 @@ export class Signaling {
   private initSignalingServer(httpServer: any) {
     this.io = new WSServer(httpServer, {
       cors: {
-        origin: "http://localhost:5173",
+        origin: process.env.BASE_URL,
       },
     });
   }

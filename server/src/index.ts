@@ -2,6 +2,7 @@ import express from "express";
 import cors from "cors";
 import { createServer } from "http";
 import { Core } from "./Core";
+import 'dotenv/config';
 
 const port = 3000;
 
@@ -10,7 +11,7 @@ const main = async () => {
     const app = express();
     app.use(
       cors({
-        origin: "http://localhost:5173",
+        origin: process.env.BASE_URL,
       }),
     );
 

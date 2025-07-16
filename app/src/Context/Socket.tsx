@@ -26,7 +26,7 @@ export const Socket: React.FC<SocketProps> = ({ children }) => {
   const [isConnected, setIsConnected] = useState(false);
 
   if (!socket.current) {
-    socket.current = io('http://localhost:3000', {autoConnect: false});
+    socket.current = io(import.meta.env.VITE_SERVER_URL, {autoConnect: false});
   }
 
   return (

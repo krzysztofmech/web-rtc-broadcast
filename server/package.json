@@ -8,10 +8,12 @@
   "license": "ISC",
   "scripts": {
     "watch": "tsc -w",
-    "dev": "DEBUG=mediasoup* nodemon dist/index.js"
+    "dev": "nodemon dist/index.js",
+    "build": "tsc"
   },
   "dependencies": {
     "cors": "^2.8.5",
+    "dotenv": "^17.2.0",
     "express": "^5.1.0",
     "mediasoup": "3",
     "mediasoup-client": "^3.12.2",
