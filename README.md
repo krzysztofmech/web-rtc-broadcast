@@ -5,30 +5,26 @@ The project gave me the foundations of real-time applications and allowed me to 
 
 ## Core Components
 
-<ul>
-  <li>Its built on top of [Mediasoup v3](https://mediasoup.org/documentation/v3/)</li>
-  <li>Signaling is done with Socket.io</li>
-  <li>Served by the Express application.</li>
-  <li>The looped song is being injected by running [ffmpeg](https://ffmpeg.org/ffmpeg.html) process</li>
-  <li>Client application uses React bundled by Vite and styled with Tailwind</li>
-</ul>
+  - Its built on top of [Mediasoup v3](https://mediasoup.org/documentation/v3/)
+  - Signaling is done with Socket.io
+  - Served by the Express application
+  - The looped song is being injected by running [ffmpeg](https://ffmpeg.org/ffmpeg.html) process
+  - Client application uses React bundled by Vite and styled with Tailwind
 
 ## Requirements
-<ul>
-  <li>ffmpeg installed</li>
-  <li>Bun and pnpm installed</li>
-  <li>Mediasoup requirements: https://mediasoup.org/documentation/v2/mediasoup/installation/#requirements</li>
-</ul>
+
+  - ffmpeg installed</li>
+  - Bun and pnpm installed</li>
+  - [Mediasoup requirements](https://mediasoup.org/documentation/v2/mediasoup/installation/#requirements)</li>
+
 
 ## Installation
-Go to the `app` and run `bun install` and then `bun dev`
-<br/>
-<br/>
-Go to the `server` and run `pnpm install` then in one terminal run `pnpm watch`, in a second `pnpm dev`
+- Go to the `app` and run `bun install` and then `bun dev`
+- Inside the `server` run `pnpm install` then in one terminal run `pnpm watch`, in a second `pnpm dev`
 
 ## How does it work?
-<ul>
-  <li>Enter the username</li>
-  <li>Join the room</li>
-  <li>Start listening with others</li>
-</ul>
+
+- Enter the username
+- Join the room
+- Start listening with others
+
